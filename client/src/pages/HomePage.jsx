@@ -30,7 +30,7 @@ const HomePage = () => {
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-10">
           <div className="bg-gray-800 rounded-lg p-6 md:p-8 shadow-xl hover:shadow-2xl transition">
-            <div className="text-cyan-400 text-4xl mb-4">⚡</div>
+            <div className="text-cyan-400 text-4xl mb-4"></div>
             <h3 className="text-xl md:text-2xl font-bold mb-3 text-cyan-400">
               Quick Reporting
             </h3>
@@ -41,7 +41,7 @@ const HomePage = () => {
           </div>
 
           <div className="bg-gray-800 rounded-lg p-6 md:p-8 shadow-xl hover:shadow-2xl transition">
-            <div className="text-cyan-400 text-4xl mb-4">📍</div>
+            <div className="text-cyan-400 text-4xl mb-4"></div>
             <h3 className="text-xl md:text-2xl font-bold mb-3 text-cyan-400">
               Real-Time Tracking
             </h3>
@@ -52,7 +52,7 @@ const HomePage = () => {
           </div>
 
           <div className="bg-gray-800 rounded-lg p-6 md:p-8 shadow-xl hover:shadow-2xl transition">
-            <div className="text-cyan-400 text-4xl mb-4">🔒</div>
+            <div className="text-cyan-400 text-4xl mb-4"></div>
             <h3 className="text-xl md:text-2xl font-bold mb-3 text-cyan-400">
               Secure & Confidential
             </h3>
