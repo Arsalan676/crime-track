@@ -1,21 +1,24 @@
 const express = require('express');
 const router = express.Router();
-const authMiddleware = require('../middleware/auth');
+const authMiddleware = require('../middleware/authMiddleware');
 const adminController = require('../controllers/adminController');
-const reportController = require('../controllers/reportController');
+const reportsController = require('../controllers/reportsController');
 
 // Admin routes
-router.post('/login', adminController.login);
-router.get('/reports', authMiddleware, reportController.getAllReports);
-router.put(
-  '/reports/:id/verify',
-  authMiddleware,
-  reportController.verifyReport
+router.post(
+  '/login',
+  (req, res, next) => {
+    console.log('🔥 Login route hit');
+    next();
+  },
+  adminController.login
 );
+router.get('/reports', authMiddleware, adminController.getAllReports);
+router.put('/reports/:id/verify', authMiddleware, adminController.verifyReport);
 router.get(
   '/dashboard/stats',
   authMiddleware,
-  reportController.getDashboardStats
+  adminController.getDashboardStats
 );
 
 module.exports = router;

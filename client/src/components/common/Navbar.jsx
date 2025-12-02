@@ -19,7 +19,7 @@ const Navbar = () => {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <Link to="/" onClick={closeMenu}>
-            <h1 className="text-2xl font-bold text-cyan-400 cursor-pointer hover:text-cyan-300 transition">
+            <h1 className="text-2xl font-bold text-cyan-400 cursor-pointer hover:text-cyan-500 transition">
               CrimeTrack
             </h1>
           </Link>
@@ -48,7 +48,7 @@ const Navbar = () => {
               Contact
             </Link>
             <button
-              onClick={() => navigate("/login")}
+              onClick={() => navigate("/admin/login")}
               className="bg-cyan-500 hover:bg-cyan-600 px-4 py-2 rounded-lg transition text-white font-medium"
             >
               Login

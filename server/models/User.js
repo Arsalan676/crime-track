@@ -5,7 +5,12 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
     unique: true,
-    match: /^[0-9]{10}$/,
+    match: /^[0-9]{10,15}$/,
+  },
+  firebaseUid: {
+    type: String,
+    unique: true,
+    sparse: true, // Allows null values
   },
   otp: String,
   otpExpiry: Date,
@@ -13,6 +18,7 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  lastOtpSentAt: Date, // Track last OTP sent time
   reports: [
     {
       type: mongoose.Schema.Types.ObjectId,

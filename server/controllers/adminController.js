@@ -3,8 +3,8 @@ const router = express.Router();
 const jwt = require('jsonwebtoken');
 const Admin = require('../models/Admin');
 const Report = require('../models/Report');
-const authMiddleware = require('../middleware/auth');
-const { sendSMS } = require('../utils/sms');
+const authMiddleware = require('../middleware/authMiddleware');
+const { sendVerificationStatus } = require('../utils/sms');
 
 // Admin login
 exports.login = async (req, res) => {
@@ -36,6 +36,7 @@ exports.login = async (req, res) => {
       },
     });
   } catch (error) {
+    console.error('🔥 Login Error:', error);
     res.status(500).json({ error: 'Login failed' });
   }
 };
@@ -64,29 +65,27 @@ exports.verifyReport = async (req, res) => {
       return res.status(404).json({ error: 'Report not found' });
     }
 
+    // Store old status
+    const oldStatus = report.status;
+
     report.status = status;
     report.verifiedAt = new Date();
     report.verifiedBy = req.admin._id;
     report.adminNotes = adminNotes;
     await report.save();
 
-    // Send SMS to user
-    let message;
-    if (status === 'verified') {
-      message = `Your crime report (ID: ${report._id
-        .toString()
-        .slice(-6)}) has been verified by authorities. Action is being taken.`;
-    } else if (status === 'spam') {
-      message = `Your crime report (ID: ${report._id
-        .toString()
-        .slice(-6)}) has been marked as spam and cancelled.`;
+    // Send SMS to user ONLY if status changed
+    if (
+      oldStatus !== status &&
+      (status === 'verified' || status === 'spam' || status === 'resolved')
+    ) {
+      const reportId = report._id.toString().slice(-6).toUpperCase();
+      await sendVerificationStatus(report.mobileNumber, reportId, status);
     }
-
-    await sendSMS(report.mobileNumber, message);
 
     res.json({
       success: true,
-      message: 'Report updated successfully',
+      message: `Report ${status} successfully. User has been notified via SMS.`,
       report,
     });
   } catch (error) {
@@ -112,5 +111,3 @@ exports.getDashboardStats = async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch stats' });
   }
 };
-
-module.exports = router;

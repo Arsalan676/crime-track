@@ -1,10 +1,15 @@
-const express = require("express");
-const cors = require("cors");
-require("dotenv").config();
+const express = require('express');
+const cors = require('cors');
+require('dotenv').config();
 
-const connectDB = require("./config/db");
-const reportRoutes = require("./routes/reports");
-const adminRoutes = require("./routes/admin");
+// Initialize Firebase Admin
+require('./config/firebase');
+
+const connectDB = require('./config/db');
+const reportsRoutes = require('./routes/reportsRoutes');
+const adminRoutes = require('./routes/adminRoutes');
+const userRoutes = require('./routes/userRoutes');
+const geocodingRoutes = require('./routes/geocodingRoutes');
 
 const app = express();
 
@@ -17,21 +22,23 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Routes
-app.use("/api/reports", reportRoutes);
-app.use("/api/admin", adminRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/reports', reportsRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/geocoding', geocodingRoutes);
 
 // Health check
-app.get("/", (req, res) => {
-  res.json({ message: "CrimeTrack API is running" });
+app.get('/', (req, res) => {
+  res.json({ message: 'CrimeTrack API is running' });
 });
 
 // Error handling
 app.use((err, req, res, next) => {
   console.error(err.stack);
-  res.status(500).json({ error: "Something went wrong!" });
+  res.status(500).json({ error: 'Something went wrong!' });
 });
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5001;
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);

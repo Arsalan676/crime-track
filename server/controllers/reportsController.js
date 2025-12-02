@@ -2,8 +2,9 @@ const express = require('express');
 const router = express.Router();
 const Report = require('../models/Report');
 const User = require('../models/User');
-const { sendSMS } = require('../utils/sms');
+const { sendReportConfirmation } = require('../utils/sms');
 const { reportRateLimiter } = require('../middleware/rateLimiter');
+const verifyUserMiddleware = require('../middleware/verifyUser');
 
 // Create new report
 exports.createReport = async (req, res) => {
@@ -38,26 +39,20 @@ exports.createReport = async (req, res) => {
 
     await report.save();
 
-    // Find or create user
-    let user = await User.findOne({ mobileNumber });
-    if (!user) {
-      user = new User({ mobileNumber, isVerified: true });
-    }
-    user.reports.push(report._id);
-    await user.save();
+    // Update user's reports
+    req.user.reports.push(report._id);
+    await req.user.save();
 
     // Send SMS confirmation
-    const message = `Your crime report (ID: ${report._id
-      .toString()
-      .slice(
-        -6
-      )}) has been submitted successfully. You will be notified once verified.`;
-    await sendSMS(mobileNumber, message);
+    const reportId = report._id.toString().slice(-6).toUpperCase();
+    await sendReportConfirmation(mobileNumber, reportId);
 
     res.status(201).json({
       success: true,
-      message: 'Report submitted successfully',
+      message:
+        'Report submitted successfully. You will receive an SMS confirmation.',
       reportId: report._id,
+      shortId: reportId,
     });
   } catch (error) {
     console.error('Report creation error:', error);
@@ -66,7 +61,7 @@ exports.createReport = async (req, res) => {
 };
 
 // Get user reports
-exports.getUserReport = async (req, res) => {
+exports.getUserReports = async (req, res) => {
   try {
     const user = await User.findOne({
       mobileNumber: req.params.mobileNumber,
@@ -116,5 +111,27 @@ exports.getUserReport = async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch reports' });
+  }
+};
+
+// Get all reports for heatmap (public route)
+exports.getHeatmapData = async (req, res) => {
+  try {
+    // Get all verified reports (not spam or pending)
+    const reports = await Report.find({
+      status: { $in: ['verified', 'resolved'] },
+    }).select('location.latitude location.longitude crimeType');
+
+    // Format data for heatmap
+    const heatmapData = reports.map((report) => ({
+      lat: report.location.latitude,
+      lng: report.location.longitude,
+      intensity: 1, // You can adjust intensity based on crime severity
+    }));
+
+    res.json({ heatmapData });
+  } catch (error) {
+    console.error('Heatmap data error:', error);
+    res.status(500).json({ error: 'Failed to fetch heatmap data' });
   }
 };

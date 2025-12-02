@@ -23,7 +23,10 @@ const reportSchema = new mongoose.Schema({
       type: Number,
       required: true,
     },
-    address: String,
+    address: {
+      type: String,
+      required: true, // Now required
+    },
   },
   status: {
     type: String,
@@ -45,5 +48,8 @@ const reportSchema = new mongoose.Schema({
 
 // Add compound index for efficient rate limit checks
 reportSchema.index({ mobileNumber: 1, reportedAt: -1 });
+
+// Add geospatial index for location-based queries
+reportSchema.index({ 'location.latitude': 1, 'location.longitude': 1 });
 
 module.exports = mongoose.model('Report', reportSchema);

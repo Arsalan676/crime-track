@@ -5,7 +5,9 @@ import ReportCrime from "./pages/user/ReportCrime.jsx";
 import UserDashboard from "./pages/user/UserDashboard.jsx";
 import AdminLogin from "./pages/admin/AdminLogin.jsx";
 import AdminDashboard from "./pages/admin/AdminDashboard.jsx";
+import CrimeReportsPage from "./pages/admin/CrimeReportsPage.jsx";
 import Layout from "./components/common/layout/Layout.jsx";
+import OTPVerificationPage from "./pages/user/OTPVerificationPage.jsx";
 
 export default function App() {
   return (
@@ -13,10 +15,12 @@ export default function App() {
       <Layout>
         <Routes>
           <Route path="/" element={<HomePage />} />
+          <Route path="/verify" element={<OTPVerificationPage />} />
           <Route path="/user-dashboard" element={<UserDashboard />} />
           <Route path="/report-crime" element={<ReportCrime />} />
-          <Route path="/admin-login" element={<AdminLogin />} />
-          <Route path="/admin-dashboard" element={<AdminDashboard />} />
+          <Route path="/admin/login" element={<AdminLogin />} />
+          <Route path="/admin/dashboard" element={<AdminDashboard />} />
+          <Route path="/admin/reports" element={<CrimeReportsPage />} />
         </Routes>
       </Layout>
     </div>
