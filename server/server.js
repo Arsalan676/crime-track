@@ -32,6 +32,10 @@ app.get('/', (req, res) => {
   res.json({ message: 'CrimeTrack API is running' });
 });
 
+app.get('/api/health', (req, res) => {
+  res.status(200).send('OK');
+});
+
 // Error handling
 app.use((err, req, res, next) => {
   console.error(err.stack);
