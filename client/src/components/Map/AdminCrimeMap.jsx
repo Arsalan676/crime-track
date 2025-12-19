@@ -1,6 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
 import reportService from "../../services/reportService";
 
+const API_BASE_URL = import.meta.env.VITE_API_URL;
+
 const AdminCrimeMap = ({ report, reports }) => {
   const mapContainerRef = useRef(null);
   const mapRef = useRef(null);
@@ -10,8 +12,7 @@ const AdminCrimeMap = ({ report, reports }) => {
   const [showHeatmap, setShowHeatmap] = useState(true);
   const [mapStyle, setMapStyle] = useState("streets");
 
-  const MAPBOX_TOKEN =
-    import.meta.env.VITE_MAPBOX_ACCESS_TOKEN || "http://localhost:5001/api";
+  const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN || "";
 
   // Crime type icons and colors
   const crimeIcons = {
@@ -44,15 +45,28 @@ const AdminCrimeMap = ({ report, reports }) => {
       initializeMultipleReportsMap();
     }
 
+    // Cleanup function - runs when component unmounts or dependencies change
     return () => {
-      if (mapRef.current) {
-        mapRef.current.remove();
-      }
+      cleanupMap();
     };
   }, [report, reports]);
 
+  // NEW: Cleanup function to properly destroy the map
+  const cleanupMap = () => {
+    if (mapRef.current) {
+      mapRef.current.off(); // Remove all event listeners
+      mapRef.current.remove(); // Destroy the map instance
+      mapRef.current = null;
+    }
+    markersRef.current = [];
+    heatLayerRef.current = null;
+  };
+
   const initializeSingleReportMap = () => {
-    if (!window.L || !report || mapRef.current) return;
+    if (!window.L || !report) return;
+
+    // FIXED: Clean up existing map before creating new one
+    cleanupMap();
 
     const L = window.L;
 
@@ -117,7 +131,10 @@ const AdminCrimeMap = ({ report, reports }) => {
   };
 
   const initializeMultipleReportsMap = async () => {
-    if (!window.L || !reports || reports.length === 0 || mapRef.current) return;
+    if (!window.L || !reports || reports.length === 0) return;
+
+    // FIXED: Clean up existing map before creating new one
+    cleanupMap();
 
     const L = window.L;
 
@@ -200,13 +217,14 @@ const AdminCrimeMap = ({ report, reports }) => {
         const heatData = heatmapData.heatmapData.map((point) => [
           point.lat,
           point.lng,
-          0.5,
+          1.0, // FIXED: Increased intensity from 0.5 to 1.0
         ]);
 
         const heat = L.heatLayer(heatData, {
-          radius: 25,
-          blur: 35,
-          maxZoom: 17,
+          radius: 50, // FIXED: Increased from 25
+          blur: 50, // FIXED: Increased from 35
+          maxZoom: 19, // FIXED: Increased from 17
+          minOpacity: 0.6, // FIXED: Added for better visibility
           gradient: {
             0.0: "blue",
             0.3: "lime",
@@ -261,15 +279,15 @@ const AdminCrimeMap = ({ report, reports }) => {
 
   const changeMapStyle = (style) => {
     setMapStyle(style);
-    if (mapRef.current) {
-      mapRef.current.remove();
-      mapRef.current = null;
+    // FIXED: Use setTimeout to ensure cleanup completes before reinitializing
+    cleanupMap();
+    setTimeout(() => {
       if (report) {
         initializeSingleReportMap();
       } else if (reports) {
         initializeMultipleReportsMap();
       }
-    }
+    }, 100);
   };
 
   return (

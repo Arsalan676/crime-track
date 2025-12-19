@@ -1,7 +1,5 @@
-# Node modules
+# Node modules (covers root, client/, and server/)
 node_modules/
-client/node_modules/
-server/node_modules/
 
 # Build and dist files
 dist/
@@ -37,7 +35,6 @@ coverage/
 *.tmp
 *.temp
 
-# Lock files (optional if using multiple package managers)
-package-lock.json
-yarn.lock
-pnpm-lock.yaml
+# Secrets (Keep these ignored!)
+firebase-service-account.json
+

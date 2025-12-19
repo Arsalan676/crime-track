@@ -12,6 +12,7 @@ const userSchema = new mongoose.Schema({
     unique: true,
     sparse: true, // Allows null values
   },
+  lastVerifiedAt: { type: Date },
   otp: String,
   otpExpiry: Date,
   isVerified: {

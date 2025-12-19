@@ -1,4 +1,11 @@
+import {
+  auth,
+  RecaptchaVerifier,
+  signInWithPhoneNumber,
+} from "../../config/firebase"; // Adjust path
 import React, { useState, useEffect, useRef } from "react";
+
+const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 const OTPVerificationPage = ({ onVerificationSuccess }) => {
   const [step, setStep] = useState("mobile");
@@ -35,7 +42,7 @@ const OTPVerificationPage = ({ onVerificationSuccess }) => {
     };
   }, []);
 
-  const setupRecaptcha = async () => {
+  /*const setupRecaptcha = async () => {
     if (!window.firebase) {
       setError("Firebase not loaded. Please refresh the page.");
       return null;
@@ -43,7 +50,23 @@ const OTPVerificationPage = ({ onVerificationSuccess }) => {
 
     const auth = window.firebase.auth();
 
-    if (!recaptchaVerifierRef.current) {
+    // ✅ Clear any existing recaptcha widget first
+    if (recaptchaVerifierRef.current) {
+      try {
+        recaptchaVerifierRef.current.clear();
+      } catch (e) {
+        console.log("Error clearing recaptcha:", e);
+      }
+      recaptchaVerifierRef.current = null;
+    }
+
+    // ✅ Make sure the container exists
+    if (!recaptchaContainerRef.current) {
+      setError("reCAPTCHA container not found");
+      return null;
+    }
+
+    try {
       recaptchaVerifierRef.current = new window.firebase.auth.RecaptchaVerifier(
         recaptchaContainerRef.current,
         {
@@ -57,12 +80,164 @@ const OTPVerificationPage = ({ onVerificationSuccess }) => {
           },
         }
       );
+
+      // ✅ Render the recaptcha before returning
+      await recaptchaVerifierRef.current.render();
+
+      return recaptchaVerifierRef.current;
+    } catch (error) {
+      console.error("reCAPTCHA setup error:", error);
+      setError("Failed to initialize reCAPTCHA");
+      return null;
+    }
+  };
+  */
+
+  const setupRecaptcha = () => {
+    if (recaptchaVerifierRef.current) {
+      try {
+        recaptchaVerifierRef.current.clear();
+      } catch (e) {}
+      recaptchaVerifierRef.current = null;
     }
 
-    return recaptchaVerifierRef.current;
+    const container = document.getElementById("recaptcha-container");
+    if (!container) {
+      setError("reCAPTCHA container not found");
+      return null;
+    }
+
+    try {
+      recaptchaVerifierRef.current = new RecaptchaVerifier(
+        auth,
+        "recaptcha-container",
+        {
+          size: "invisible", // Change from 'invisible' to 'normal'
+          callback: (response) => {
+            console.log("reCAPTCHA verified successfully");
+          },
+          "expired-callback": () => {
+            setError("reCAPTCHA expired. Please try again.");
+          },
+        }
+      );
+
+      console.log("reCAPTCHA verifier created");
+      return recaptchaVerifierRef.current;
+    } catch (error) {
+      console.error("reCAPTCHA error:", error);
+      setError("Failed to initialize reCAPTCHA");
+      return null;
+    }
   };
 
   const handleRequestOTP = async () => {
+    setError("");
+    setSuccess("");
+
+    if (!mobileNumber || mobileNumber.length !== 10) {
+      setError("Please enter a valid 10-digit mobile number");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const fullPhoneNumber = `${countryCode}${mobileNumber}`;
+
+      // Setup reCAPTCHA
+      const recaptchaVerifier = setupRecaptcha();
+      if (!recaptchaVerifier) {
+        throw new Error("reCAPTCHA setup failed");
+      }
+
+      console.log("6. Calling signInWithPhoneNumber...");
+
+      // Use modular SDK signInWithPhoneNumber
+      const confirmResult = await signInWithPhoneNumber(
+        auth,
+        fullPhoneNumber,
+        recaptchaVerifier
+      );
+
+      console.log("7. OTP sent successfully");
+      setConfirmationResult(confirmResult);
+      setSuccess(`OTP sent to ${fullPhoneNumber}`);
+      setStep("otp");
+      setTimer(120);
+      setCanResend(false);
+    } catch (err) {
+      console.error("OTP Request Error:", err);
+      setError(err.message || "Failed to send OTP. Please try again.");
+      recaptchaVerifierRef.current = null;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerifyOTP = async () => {
+    setError("");
+    setSuccess("");
+
+    if (!otp || otp.length !== 6) {
+      setError("Please enter a valid 6-digit OTP");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      // Verify OTP with Firebase - this will fail if OTP is wrong!
+      const credential = await confirmationResult.confirm(otp);
+
+      // Get REAL Firebase ID token
+      const idToken = await credential.user.getIdToken();
+      const fullPhoneNumber = credential.user.phoneNumber;
+
+      // Send real token to backend
+      const response = await fetch(
+        `${API_BASE_URL}/users/verify-firebase-token`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            idToken: idToken,
+            phoneNumber: fullPhoneNumber,
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setSuccess("Mobile number verified successfully!");
+        localStorage.setItem("verifiedMobile", mobileNumber);
+
+        setTimeout(() => {
+          if (onVerificationSuccess) {
+            onVerificationSuccess(mobileNumber);
+          } else {
+            window.location.href = "/report-crime";
+          }
+        }, 1500);
+      } else {
+        setError(data.error || "Verification failed");
+      }
+    } catch (err) {
+      console.error("OTP Verification Error:", err);
+
+      // Handle wrong OTP
+      if (err.code === "auth/invalid-verification-code") {
+        setError("Invalid OTP. Please check and try again.");
+      } else {
+        setError(err.message || "Verification failed. Please try again.");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /* const handleRequestOTP = async () => {
     setError("");
     setSuccess("");
 
@@ -147,7 +322,7 @@ const OTPVerificationPage = ({ onVerificationSuccess }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }; */
 
   const handleResendOTP = () => {
     setOtp("");
@@ -333,13 +508,9 @@ const OTPVerificationPage = ({ onVerificationSuccess }) => {
             </div>
           )}
         </div>
-
-        <div className="mt-6 text-center">
-          <p className="text-xs text-gray-500">
-            Protected by Firebase Authentication & reCAPTCHA
-          </p>
-        </div>
       </div>
+
+      <div ref={recaptchaContainerRef} id="recaptcha-container"></div>
     </div>
   );
 };

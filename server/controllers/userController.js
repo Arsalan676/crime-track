@@ -4,7 +4,7 @@ const admin = require('../config/firebase');
 const User = require('../models/User');
 
 // Verify Firebase ID Token and create/update user
-/*exports.verifyFirebaseToken = async (req, res) => {
+exports.verifyFirebaseToken = async (req, res) => {
   try {
     const { idToken, phoneNumber } = req.body;
 
@@ -77,11 +77,11 @@ const User = require('../models/User');
       error: 'Verification failed. Please try again.',
     });
   }
-}; */
+};
 
 // DEMO MODE: No Firebase. Always verifies OTP successfully.
 
-exports.verifyFirebaseToken = async (req, res) => {
+/*exports.verifyFirebaseToken = async (req, res) => {
   try {
     const { phoneNumber } = req.body;
 
@@ -125,7 +125,7 @@ exports.verifyFirebaseToken = async (req, res) => {
       error: 'Verification failed (demo mode)',
     });
   }
-};
+}; */
 
 // Check verification status
 exports.checkVerificationStatus = async (req, res) => {

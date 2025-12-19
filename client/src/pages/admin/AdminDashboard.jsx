@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 
+const API_BASE_URL = import.meta.env.VITE_API_URL;
+
 const AdminDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
@@ -34,14 +36,11 @@ const AdminDashboard = () => {
   const fetchDashboardData = async () => {
     try {
       const token = localStorage.getItem("adminToken");
-      const response = await fetch(
-        "http://localhost:5001/api/admin/dashboard/stats",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await fetch(`${API_BASE_URL}/admin/dashboard/stats`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       if (response.ok) {
         const data = await response.json();
@@ -61,7 +60,7 @@ const AdminDashboard = () => {
     try {
       const token = localStorage.getItem("adminToken");
       const response = await fetch(
-        `http://localhost:5001/api/admin/reports?status=${filterStatus}`,
+        `${API_BASE_URL}/admin/reports?status=${filterStatus}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -111,7 +110,7 @@ const AdminDashboard = () => {
     try {
       const token = localStorage.getItem("adminToken");
       const response = await fetch(
-        `http://localhost:5001/api/admin/reports/${selectedReport._id}/verify`,
+        `${API_BASE_URL}/admin/reports/${selectedReport._id}/verify`,
         {
           method: "PUT",
           headers: {
@@ -166,7 +165,7 @@ const AdminDashboard = () => {
     return (
       <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
         <div className="text-center">
-          <div className="text-6xl mb-4">⏳</div>
+          <div className="text-6xl mb-4">&#x21BB;</div>
           <p className="text-xl">Loading Dashboard...</p>
         </div>
       </div>
@@ -190,7 +189,6 @@ const AdminDashboard = () => {
               >
                 All Reports
               </button>
-              <span className="text-sm text-gray-400">Admin Panel</span>
               <button
                 onClick={handleLogout}
                 className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition"
@@ -451,14 +449,14 @@ const AdminDashboard = () => {
                       disabled={processingReport}
                       className="flex-1 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 text-white font-bold py-3 rounded-lg transition"
                     >
-                      {processingReport ? "Processing..." : "✅ Verify Report"}
+                      {processingReport ? "Processing..." : "Verify Report"}
                     </button>
                     <button
                       onClick={() => handleVerifyReport("spam")}
                       disabled={processingReport}
                       className="flex-1 bg-red-600 hover:bg-red-700 disabled:bg-gray-600 text-white font-bold py-3 rounded-lg transition"
                     >
-                      {processingReport ? "Processing..." : "🚫 Mark as Spam"}
+                      {processingReport ? "Processing..." : "Mark as Spam"}
                     </button>
                   </div>
                 )}
@@ -469,7 +467,7 @@ const AdminDashboard = () => {
                     disabled={processingReport}
                     className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white font-bold py-3 rounded-lg transition"
                   >
-                    {processingReport ? "Processing..." : "✔️ Mark as Resolved"}
+                    {processingReport ? "Processing..." : "Mark as Resolved"}
                   </button>
                 )}
               </div>

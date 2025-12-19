@@ -3,6 +3,8 @@ import adminService from "../../services/adminService";
 import authService from "../../services/authService";
 import AdminCrimeMap from "../../components/Map/AdminCrimeMap";
 
+const API_BASE_URL = import.meta.env.VITE_API_URL;
+
 const CrimeReportsPage = () => {
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -298,37 +300,42 @@ const CrimeReportsPage = () => {
 
       {/* Modal */}
       {selectedReport && (
-        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4 overflow-y-auto">
-          <div className="bg-gray-800 rounded-lg max-w-4xl w-full my-8">
-            <div className="p-6">
-              <div className="flex justify-between items-start mb-6">
-                <div className="flex items-center gap-4">
-                  <span className="text-5xl">
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-2 sm:p-4 overflow-y-auto">
+          <div className="bg-gray-800 rounded-lg max-w-4xl w-full my-4 sm:my-8 relative max-h-[95vh] overflow-y-auto">
+            {/* Close Button - Top Right Corner */}
+            <button
+              onClick={() => setSelectedReport(null)}
+              className="sticky top-2 right-2 float-right text-gray-400 hover:text-white bg-gray-700 hover:bg-gray-600 rounded-full w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center text-xl sm:text-2xl font-bold transition-colors z-10"
+              aria-label="Close"
+            >
+              ×
+            </button>
+
+            <div className="p-4 sm:p-6">
+              <div className="flex justify-between items-start mb-4 sm:mb-6 pr-10 sm:pr-12">
+                <div className="flex items-center gap-2 sm:gap-4">
+                  <span className="text-3xl sm:text-5xl">
                     {crimeIcons[selectedReport.crimeType] || "📋"}
                   </span>
                   <div>
-                    <h3 className="text-3xl font-bold text-cyan-400">
+                    <h3 className="text-xl sm:text-3xl font-bold text-cyan-400">
                       {selectedReport.crimeType}
                     </h3>
-                    <p className="text-gray-400">
+                    <p className="text-xs sm:text-sm text-gray-400">
                       ID: {selectedReport._id.slice(-6).toUpperCase()}
                     </p>
                   </div>
                 </div>
-                <button
-                  onClick={() => setSelectedReport(null)}
-                  className="text-4xl text-gray-400 hover:text-white"
-                >
-                  ×
-                </button>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                <div className="space-y-4">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-4 sm:mb-6">
+                <div className="space-y-3 sm:space-y-4">
                   <div>
-                    <p className="text-sm text-gray-400">Status</p>
+                    <p className="text-xs sm:text-sm text-gray-400 mb-1">
+                      Status
+                    </p>
                     <span
-                      className={`inline-block px-4 py-2 rounded-full text-sm font-semibold ${
+                      className={`inline-block min-w-[90px] sm:min-w-[110px] text-center px-3 sm:px-4 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-semibold ${
                         statusColors[selectedReport.status]
                       }`}
                     >
@@ -336,32 +343,42 @@ const CrimeReportsPage = () => {
                     </span>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-400">Reported</p>
-                    <p className="text-lg">
+                    <p className="text-xs sm:text-sm text-gray-400 mb-1">
+                      Reported
+                    </p>
+                    <p className="text-sm sm:text-lg text-white">
                       {formatDate(selectedReport.reportedAt)}
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-400">Contact</p>
-                    <p className="text-lg">{selectedReport.mobileNumber}</p>
+                    <p className="text-xs sm:text-sm text-gray-400 mb-1">
+                      Contact
+                    </p>
+                    <p className="text-sm sm:text-lg text-white">
+                      {selectedReport.mobileNumber}
+                    </p>
                   </div>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-400 mb-2">Description</p>
-                  <div className="bg-gray-700 p-4 rounded-lg h-48 overflow-y-auto">
-                    <p>{selectedReport.description}</p>
+                  <p className="text-xs sm:text-sm text-gray-400 mb-2">
+                    Description
+                  </p>
+                  <div className="bg-gray-700 p-3 sm:p-4 rounded-lg h-28 sm:h-40 overflow-y-auto">
+                    <p className="text-sm sm:text-base text-white">
+                      {selectedReport.description}
+                    </p>
                   </div>
                 </div>
               </div>
 
               {/* Map */}
-              <div className="mb-6">
+              <div className="mb-6 h-48 sm:h-64 lg:h-80">
                 <AdminCrimeMap report={selectedReport} />
               </div>
 
               {/* Admin Notes */}
               <div className="mb-6">
-                <label className="block text-sm text-gray-400 mb-2">
+                <label className="block text-xs sm:text-sm text-gray-400 mb-2">
                   Admin Notes
                 </label>
                 <textarea
@@ -369,38 +386,61 @@ const CrimeReportsPage = () => {
                   onChange={(e) => setAdminNotes(e.target.value)}
                   rows={3}
                   placeholder="Add notes..."
-                  className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg resize-none"
+                  className="w-full px-3 sm:px-4 py-2 sm:py-3 bg-gray-700 border border-gray-600 rounded-lg resize-none text-sm sm:text-base focus:outline-none focus:border-cyan-400 text-white"
                 />
               </div>
 
               {/* Action Buttons */}
-              {selectedReport.status === "pending" && (
-                <div className="flex gap-4">
-                  <button
-                    onClick={() => handleVerify("verified")}
-                    disabled={processing}
-                    className="flex-1 bg-green-600 hover:bg-green-700 py-3 rounded-lg font-bold"
+              <div className="space-y-3">
+                {/* Open in Google Maps Button - Only show if coordinates exist */}
+                {selectedReport?.location?.coordinates?.length === 2 && (
+                  <a
+                    href={`https://www.google.com/maps?q=${selectedReport.location.coordinates[1]},${selectedReport.location.coordinates[0]}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block w-full bg-blue-600 hover:bg-blue-700 py-3 rounded-lg font-bold text-sm sm:text-base transition-colors text-center text-white"
                   >
-                    {processing ? "Processing..." : "Verify"}
-                  </button>
+                    📍 Open in Google Maps
+                  </a>
+                )}
+
+                {selectedReport.status === "pending" && (
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <button
+                      onClick={() => handleVerify("verified")}
+                      disabled={processing}
+                      className="w-full sm:flex-1 bg-green-600 hover:bg-green-700 py-3 rounded-lg font-bold text-sm sm:text-base disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                      {processing ? "Processing..." : "✓ Verify"}
+                    </button>
+                    <button
+                      onClick={() => handleVerify("spam")}
+                      disabled={processing}
+                      className="w-full sm:flex-1 bg-red-600 hover:bg-red-700 py-3 rounded-lg font-bold text-sm sm:text-base disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                      {processing ? "Processing..." : "✕ Mark as Spam"}
+                    </button>
+                  </div>
+                )}
+
+                {selectedReport.status === "verified" && (
                   <button
-                    onClick={() => handleVerify("spam")}
+                    onClick={() => handleVerify("resolved")}
                     disabled={processing}
-                    className="flex-1 bg-red-600 hover:bg-red-700 py-3 rounded-lg font-bold"
+                    className="w-full bg-green-600 hover:bg-green-700 py-3 rounded-lg font-bold text-sm sm:text-base disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
-                    {processing ? "Processing..." : "Spam"}
+                    {processing ? "Processing..." : "✓ Mark as Resolved"}
                   </button>
-                </div>
-              )}
-              {selectedReport.status === "verified" && (
+                )}
+
+                {/* Close Button */}
                 <button
-                  onClick={() => handleVerify("resolved")}
-                  disabled={processing}
-                  className="w-full bg-blue-600 hover:bg-blue-700 py-3 rounded-lg font-bold"
+                  onClick={() => setSelectedReport(null)}
+                  className="w-full bg-gray-700 hover:bg-gray-600 py-3 rounded-lg font-bold text-sm sm:text-base transition-colors"
                 >
-                  {processing ? "Processing..." : "Resolve"}
+                  Close
                 </button>
-              )}
+              </div>
             </div>
           </div>
         </div>

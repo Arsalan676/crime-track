@@ -3,6 +3,7 @@ import authService from "../../services/authService.js";
 import reportService from "../../services/reportService.js";
 import UserLocationMap from "../../components/map/UserLocationMap";
 
+const API_BASE_URL = import.meta.env.VITE_API_URL;
 const MAPBOX_ACCESS_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 
 const ReportCrimePage = () => {
@@ -27,8 +28,7 @@ const ReportCrimePage = () => {
   // Map state
   const [map, setMap] = useState(null);
   const [marker, setMarker] = useState(null);
-  const [heatLayer, setHeatLayer] = useState(null);
-  const [showHeatmap, setShowHeatmap] = useState(true);
+
   const mapContainerRef = useRef(null);
 
   const crimeTypes = [
@@ -50,10 +50,15 @@ const ReportCrimePage = () => {
   }, []);
 
   useEffect(() => {
-    if (isVerified && !checkingVerification) {
-      initializeMap();
+    // Small delay to ensure DOM is ready
+    if (isVerified && mapContainerRef.current && !map) {
+      const timer = setTimeout(() => {
+        initializeMap();
+      }, 100);
+
+      return () => clearTimeout(timer);
     }
-  }, [isVerified, checkingVerification]);
+  }, [isVerified, mapContainerRef.current]);
 
   const checkVerificationStatus = async () => {
     const storedMobile = localStorage.getItem("verifiedMobile");
@@ -61,7 +66,7 @@ const ReportCrimePage = () => {
     if (storedMobile) {
       try {
         const response = await fetch(
-          `http://localhost:5001/api/users/check-verification/${storedMobile}`
+          `${API_BASE_URL}/users/check-verification/${storedMobile}`
         );
         const data = await response.json();
 
@@ -80,15 +85,29 @@ const ReportCrimePage = () => {
     setCheckingVerification(false);
   };
 
-  const initializeMap = () => {
-    if (!window.L || !mapContainerRef.current || map) return;
+  /*const initializeMap = () => {
+    console.log("=== MAP DEBUG ===");
+    console.log("1. window.L exists?", !!window.L);
+    console.log("2. mapContainerRef.current?", mapContainerRef.current);
+    console.log("3. map already exists?", !!map);
+    console.log(
+      "4. Mapbox token?",
+      MAPBOX_ACCESS_TOKEN?.substring(0, 10) + "..."
+    );
+
+    if (!window.L || !mapContainerRef.current || map) {
+      console.log("STOPPED - one of the conditions failed");
+      return;
+    }
 
     const L = window.L;
+    console.log("5. Creating map...");
 
     const mapInstance = L.map(mapContainerRef.current).setView(
       [17.385, 78.4867],
       13
     );
+    console.log("6. Map created:", mapInstance);
 
     L.tileLayer(
       "https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}",
@@ -122,9 +141,9 @@ const ReportCrimePage = () => {
     setMap(mapInstance);
     setMarker(markerInstance);
     loadHeatmapData(mapInstance, L);
-  };
+  }; */
 
-  const loadHeatmapData = async (mapInstance, L) => {
+  /*const loadHeatmapData = async (mapInstance, L) => {
     try {
       const response = await fetch(
         "http://localhost:5001/api/reports/heatmap-data"
@@ -156,9 +175,9 @@ const ReportCrimePage = () => {
     } catch (error) {
       console.error("Failed to load heatmap data:", error);
     }
-  };
+  };*/
 
-  const handleLocationChange = async (lat, lng) => {
+  /*const handleLocationChange = async (lat, lng) => {
     setLoading(true);
     try {
       const response = await fetch(
@@ -266,7 +285,7 @@ const ReportCrimePage = () => {
       }
       setShowHeatmap(!showHeatmap);
     }
-  };
+  }; */
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -303,7 +322,7 @@ const ReportCrimePage = () => {
     setLoading(true);
 
     try {
-      const response = await fetch("http://localhost:5001/api/reports/create", {
+      const response = await fetch(`${API_BASE_URL}/reports/create`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -371,7 +390,7 @@ const ReportCrimePage = () => {
     return (
       <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
         <div className="text-center">
-          <div className="text-6xl mb-4">⏳</div>
+          <div className="text-6xl mb-4">&#x21BB;</div>
           <p className="text-xl">Checking verification status...</p>
         </div>
       </div>
@@ -422,7 +441,7 @@ const ReportCrimePage = () => {
               CrimeTrack
             </h1>
             <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-400">📱 {verifiedMobile}</span>
+              <span className="text-sm text-gray-400">{verifiedMobile}</span>
               <button
                 onClick={handleLogout}
                 className="text-red-400 hover:text-red-300 text-sm"
@@ -503,78 +522,19 @@ const ReportCrimePage = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2">
-                Location Address <span className="text-red-500">*</span>
-              </label>
-
-              <div className="flex gap-2 mb-4">
-                <input
-                  type="text"
-                  name="address"
-                  value={formData.address}
-                  onChange={handleInputChange}
-                  placeholder="Enter address or select on map"
-                  className="flex-1 px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:border-cyan-500 text-white"
-                  onKeyPress={(e) => e.key === "Enter" && handleAddressSearch()}
-                />
-                <button
-                  onClick={handleAddressSearch}
-                  disabled={loading}
-                  className="bg-cyan-600 hover:bg-cyan-700 disabled:bg-gray-600 text-white font-bold px-6 py-3 rounded-lg transition"
-                >
-                  {loading ? "⏳" : "🔍"}
-                </button>
-              </div>
-
-              <div className="flex gap-2 mb-4">
-                <button
-                  onClick={handleCurrentLocation}
-                  disabled={loading}
-                  className="flex-1 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 text-white font-bold py-3 rounded-lg transition flex items-center justify-center gap-2"
-                >
-                  <span>📍</span> Current Location
-                </button>
-
-                <button
-                  onClick={toggleHeatmap}
-                  className="bg-orange-600 hover:bg-orange-700 text-white font-bold px-6 py-3 rounded-lg transition"
-                >
-                  {showHeatmap ? " Hide" : " Show"} Heatmap
-                </button>
-              </div>
-
-              <div
-                ref={mapContainerRef}
-                className="w-full rounded-lg border-2 border-gray-600 overflow-hidden mb-4"
-                style={{ height: "400px" }}
+              <UserLocationMap
+                onLocationSelect={(location) => {
+                  setFormData((prev) => ({
+                    ...prev,
+                    latitude: location.latitude,
+                    longitude: location.longitude,
+                    address: location.address,
+                  }));
+                }}
+                initialLocation={{ lat: 17.385044, lng: 78.486671 }} // Hyderabad
+                showHeatmap={true} // Enable heatmap
+                enableHeatmapToggle={true} // Show toggle button
               />
-
-              {formData.address && (
-                <div className="bg-gray-700 p-4 rounded-lg border border-cyan-500">
-                  <p className="text-sm text-cyan-400 font-bold mb-1">
-                    Selected Location:
-                  </p>
-                  <p className="text-white text-sm">{formData.address}</p>
-                </div>
-              )}
-
-              <div className="bg-gray-700 p-4 rounded-lg mt-4">
-                <p className="text-xs text-gray-300">
-                  <span className="font-bold">Tip:</span> Click anywhere on the
-                  map, drag the marker, search for an address, or use your
-                  current location.
-                </p>
-              </div>
-
-              {showHeatmap && (
-                <div className="bg-orange-900 bg-opacity-30 border border-orange-500 p-3 rounded-lg mt-4">
-                  <p className="text-sm text-orange-200">
-                    <span className="font-bold">Crime Heatmap:</span> Red/orange
-                    areas show higher crime density. Use this to understand
-                    crime patterns in your area.
-                  </p>
-                </div>
-              )}
             </div>
 
             <button

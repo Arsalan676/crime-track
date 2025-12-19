@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 
+const API_BASE_URL = import.meta.env.VITE_API_URL;
+
 const AdminLoginPage = () => {
   const [credentials, setCredentials] = useState({
     username: "",
@@ -36,7 +38,7 @@ const AdminLoginPage = () => {
     setLoading(true);
 
     try {
-      const response = await fetch("http://localhost:5001/api/admin/login", {
+      const response = await fetch(`${API_BASE_URL}/admin/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -29,6 +29,14 @@ exports.createReport = async (req, res) => {
       return res.status(400).json({ error: 'All fields are required' });
     }
 
+    const user = await User.findOne({ mobileNumber });
+
+    if (!user || !user.isVerified) {
+      return res.status(403).json({
+        error: 'Mobile number not verified',
+      });
+    }
+
     // Create report
     const report = new Report({
       mobileNumber,
@@ -40,8 +48,8 @@ exports.createReport = async (req, res) => {
     await report.save();
 
     // Update user's reports
-    req.user.reports.push(report._id);
-    await req.user.save();
+    user.reports.push(report._id);
+    await user.save();
 
     // Send SMS confirmation
     const reportId = report._id.toString().slice(-6).toUpperCase();
