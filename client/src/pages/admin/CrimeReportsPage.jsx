@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import adminService from "../../services/adminService";
 import authService from "../../services/authService";
-import AdminCrimeMap from "../../components/Map/AdminCrimeMap";
+import AdminCrimeMap from "../../components/map/AdminCrimeMap";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 

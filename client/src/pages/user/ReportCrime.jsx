@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import authService from "../../services/authService.js";
 import reportService from "../../services/reportService.js";
-import UserLocationMap from "../../components/map/UserLocationMap";
+import UserLocationMap from "../../components/map/UserLocationMap.jsx";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 const MAPBOX_ACCESS_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
