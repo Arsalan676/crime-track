@@ -17,7 +17,15 @@ const app = express();
 connectDB();
 
 // Middleware
-app.use(cors());
+app.use(
+  cors({
+    origin: [
+      'http://localhost:5173', // localhost for local dev
+      'https://crimetrack.vercel.app', // new Vercel frontend URL
+    ],
+    credentials: true, // Important for cookies/sessions
+  })
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
